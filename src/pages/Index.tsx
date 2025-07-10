@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Heart,
@@ -13,18 +14,36 @@ import { useTheme } from "next-themes";
 import logoT from "@/assets/Asset 4.png";
 const Index = () => {
   const { theme, setTheme } = useTheme();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 5000); // 10 seconds
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-900 transition-colors">
+        <div className="flex space-x-2 mb-6">
+          <span className="w-4 h-4 bg-pink-400 rounded-full animate-bounce [animation-delay:-0.32s]"></span>
+          <span className="w-4 h-4 bg-pink-400 rounded-full animate-bounce [animation-delay:-0.16s]"></span>
+          <span className="w-4 h-4 bg-pink-400 rounded-full animate-bounce"></span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-romantic dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="container mx-auto px-4 py-6">
+      <header className="container mx-auto px-4 py-6 sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm transition-colors">
         <nav className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-20 h-8 flex items-center justify-center">
+            <div className="w-20 ml-5 h-8 flex items-center justify-center">
               <img
                 src={logoT}
                 alt="logo"
-                className="w-20 h-8 rounded-lg object-cover"
+                className="w-20 h-8 "
               />
             </div>
             {/* <h2 className="font-semibold text-gray-800 dark:text-white">
@@ -170,7 +189,7 @@ const Index = () => {
               <img
                 src={logoT}
                 alt="logo"
-                className="w-15 h-8 rounded-lg object-cover"
+                className="w-15 h-8 "
               />
             </div>
             {/* <span className="text-xl font-bold text-gray-800 dark:text-white">
