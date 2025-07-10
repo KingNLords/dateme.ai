@@ -108,13 +108,16 @@ export const Sidebar = ({
                     {conversation.title}
                   </h4>
                   <div>
+                  <div className="mb-5">
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
                       {conversation.preview}
                     </p>
-                  </div>
+                  
                   <p className="text-xs text-gray-400 mt-1">
                     {new Date(conversation.updated_at).toLocaleDateString()}
                   </p>
+                </div>
+                </div>
                 </button>
               ))
             )}
@@ -140,14 +143,6 @@ export const Sidebar = ({
                 )}
               </Button>
             </div>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
           </div>
         );
       default:
@@ -185,12 +180,12 @@ export const Sidebar = ({
           <div className="flex items-center space-x-2">
             <div
               onClick={goToLanding}
-              className="w-20 h-8 flex items-center justify-center"
+              className="w-15 h-8 flex items-center justify-center"
             >
               <img
                 src={logoT}
                 alt="logo"
-                className="w-20 h-8 rounded-lg object-cover"
+                className="w-15 h-8"
               />
             </div>
             {/* <h2 className="font-semibold text-gray-800 dark:text-white">
@@ -230,9 +225,17 @@ export const Sidebar = ({
         </div>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-pink-100 dark:border-gray-700">
+        <div className="absolute bottom-0 left-0 right-0 border-pink-100 dark:border-gray-700">
           <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-3">
-            <p className="text-sm text-pink-700 dark:text-pink-300 font-medium">
+            <Button
+              variant="outline"
+              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+            <p className="mt-5 text-sm text-pink-700 dark:text-pink-300 font-medium">
               💝 Relationship Tip
             </p>
             <p className="text-xs text-pink-600 dark:text-pink-400 mt-1">
