@@ -19,17 +19,17 @@ export const ChatHeader = ({
 
   return (
     <div className="flex items-center justify-between p-4 bg-white border-b border-pink-100 shadow-sm dark:bg-gray-900 dark:border-gray-700 ">
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2">
         <Button
           variant="ghost"
           size="sm"
           onClick={onSidebarToggle}
-          className="hidden md:flex dark:bg-gray-600"
+          className="hidden md:flex dark:bg-gray-600 "
         >
           <Menu className="w-4 h-4" />
         </Button>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
           <div>
             <h3 className="font-semibold text-gray-800 dark:text-white">
               Dateme.ai
