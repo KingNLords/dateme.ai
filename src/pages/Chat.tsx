@@ -154,23 +154,40 @@ const Chat = () => {
   }, [message]);
 
   return (
-    <div className="flex h-screen bg-gradient-chat dark:bg-gray-900">
-      <Sidebar
-        isOpen={state.sidebarOpen}
-        onToggle={() => (chatState.sidebarOpen = !chatState.sidebarOpen)}
-        onConversationSelect={handleConversationSelect}
-      />
-
-      <div className="flex-1 flex flex-col dark:bg-gray-900">
+    // <div className="flex h-screen bg-gradient-chat dark:bg-gray-900">
+    <div className="flex flex-col h-screen bg-gradient-chat dark:bg-gray-900">
+      {/* <div className="flex-1 flex flex-col dark:bg-gray-900"> */}
+      <div className="flex flex-col flex-1 overflow-hidden dark:bg-gray-900">
+        {/* <Sidebar
+          isOpen={state.sidebarOpen}
+          onToggle={() => (chatState.sidebarOpen = !chatState.sidebarOpen)}
+          onConversationSelect={handleConversationSelect}
+        />
         <ChatHeader
           currentMood={state.userPreferences.mood}
           onMoodChange={(mood) => (chatState.userPreferences.mood = mood)}
           onSidebarToggle={() =>
             (chatState.sidebarOpen = !chatState.sidebarOpen)
           }
-        />
+        /> */}
+        <ChatHeader
+          currentMood={state.userPreferences.mood}
+          onMoodChange={(mood) => (chatState.userPreferences.mood = mood)}
+          onSidebarToggle={() =>
+            (chatState.sidebarOpen = !chatState.sidebarOpen)
+          }
+        >
+          {state.sidebarOpen && (
+            <Sidebar
+              isOpen={state.sidebarOpen}
+              onToggle={() => (chatState.sidebarOpen = !chatState.sidebarOpen)}
+              onConversationSelect={handleConversationSelect}
+            />
+          )}
+        </ChatHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 pb-[140px] flex flex-col items-center">
+        {/* <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 pb-[140px] flex flex-col items-center"> */}
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 flex flex-col items-center max-h-full">
           {state.messages.map((msg) => (
             <ChatBubble key={msg.id} message={msg} />
           ))}
@@ -215,7 +232,7 @@ const Chat = () => {
                   }}
                   placeholder="Type your message..."
                   rows={1}
-                  className="max-h-[200px] overflow-y-auto resize-none transition-all duration-200 border-none focus:outline-none focus:ring-0 bg-transparent dark:bg-gray-700 dark:text-white px-3 py-2"
+                  className="flex max-h-[200px] overflow-y-auto resize-none transition-all duration-200 border-none focus:outline-none focus:ring-0 bg-transparent dark:bg-gray-700 dark:text-white px-3 py-2"
                 />
               </div>
               <Button
