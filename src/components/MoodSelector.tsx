@@ -75,6 +75,7 @@ const moodEmojis = {
   Serious: "🤔",
   Supportive: "🤗",
   Flirty: "😉",
+  "Trust-Builder": "🤝",
 };
 
 export const MoodSelector = ({

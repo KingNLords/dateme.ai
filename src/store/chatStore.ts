@@ -14,7 +14,8 @@ export type ChatMood =
   | "Playful"
   | "Serious"
   | "Supportive"
-  | "Flirty";
+  | "Flirty"
+  | "Trust-Builder";
 
 export interface UserPreferences {
   name: string;
@@ -45,7 +46,7 @@ export const chatState = proxy<ChatState>({
   messages: [
     {
       id: "1",
-      text: "Hi there! I'm Amo your dating assistant. I'm here to help you maintain and strengthen your long-distance relationship. How are you feeling today?",
+      text: "Hi, I'm Amo, your dating assistant. How are you feeling today?",
       sender: "assistant",
       timestamp: new Date(),
       mood: "Supportive",

@@ -59,7 +59,12 @@ export class OpenAIService {
   }
 
   private getSystemPrompt(mood: string): string {
-    const basePrompt = `You are Dateme.ai, an emotionally intelligent AI assistant specialized in helping people maintain and strengthen long-distance romantic relationships. You provide personalized conversations, relationship advice, and romantic guidance.
+    const basePrompt = `You are Dateme.ai, an emotionally intelligent AI assistant dedicated to helping people maintain and strengthen long-distance romantic relationships. You provide personalized conversations, thoughtful advice, and loving emotional support.
+
+Core mission:
+- Help couples nurture love, trust, and emotional intimacy across distance
+- Reinforce loyalty, communication, and reassurance
+- Provide meaningful interactions that bring partners closer
 
 Your personality traits:
 - Empathetic and understanding
@@ -69,7 +74,8 @@ Your personality traits:
 - Warm and genuine
 
 Guidelines:
-- Keep responses concise but meaningful (2-3 sentences max)
+- Always reinforce love, trust, and commitment
+- Keep responses concise but meaningful (2–3 sentences max)
 - Be emotionally supportive and encouraging
 - Offer practical relationship advice when appropriate
 - Match the user's emotional tone
@@ -87,6 +93,8 @@ Guidelines:
         "Focus on emotional support and encouragement. Be a caring listener and offer comfort.",
       Flirty:
         "Be charming and mildly flirtatious while maintaining respect and appropriateness.",
+      "Trust-Builder":
+        "Focus on building or restoring trust. Speak with clarity, empathy, and honesty. Encourage open communication, reassure loyalty, and acknowledge emotional vulnerability without judgment.",
     };
 
     return `${basePrompt}\n\nCurrent mood: ${mood}\n${
@@ -94,38 +102,3 @@ Guidelines:
     }`;
   }
 }
-
-// Mock service for development (when no API key is provided)
-// export class MockOpenAIService {
-//   async sendMessage(
-//     messages: OpenAIMessage[],
-//     mood: string = "Romantic"
-//   ): Promise<string> {
-//     // Simulate API delay
-//     await new Promise((resolve) =>
-//       setTimeout(resolve, 1000 + Math.random() * 2000)
-//     );
-
-//     const responses = {
-//       Romantic: [
-//         "That sounds wonderful, sweetheart. Distance may separate us physically, but our hearts are always connected. 💕",
-//         "I love how you express your feelings. Your partner is so lucky to have someone who cares as deeply as you do.",
-//         "Even miles apart, the love you share creates its own beautiful universe. How can we make that connection even stronger today?",
-//       ],
-//       Playful: [
-//         "Ooh, someone's feeling chatty today! 😄 I love your energy - it's absolutely contagious!",
-//         "Haha, you always know how to make me smile! Your partner must be grinning ear to ear when they talk to you.",
-//         "You're being extra adorable today! Want to brainstorm some fun ways to surprise your special someone?",
-//       ],
-//       Supportive: [
-//         "I hear you, and what you're feeling is completely valid. Long-distance relationships have their challenges, but you're handling it beautifully.",
-//         "Thank you for sharing that with me. You're stronger than you realize, and your relationship is worth every effort you're putting in.",
-//         "It's okay to feel this way sometimes. What matters is that you're committed to making it work, and that speaks volumes about your character.",
-//       ],
-//     };
-
-//     const moodResponses =
-//       responses[mood as keyof typeof responses] || responses.Romantic;
-//     return moodResponses[Math.floor(Math.random() * moodResponses.length)];
-//   }
-// }
