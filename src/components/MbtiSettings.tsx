@@ -1,6 +1,7 @@
-import React from "react";
+// components/MbtiSettings.tsx
+import React, { useState } from "react";
 import { useSnapshot } from "valtio";
-import { chatState } from "@/store/chatStore"; // Ensure path is correct
+import { chatState } from "@/store/chatStore";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -9,8 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { conversationService } from "@/services/conversationService";
 import { useToast } from "@/hooks/use-toast";
+// MbtiQuiz is no longer imported here, as it will be rendered by the parent (Chat.tsx)
 
 // Standard 16 MBTI types
 const mbtiTypes = [
@@ -32,7 +35,14 @@ const mbtiTypes = [
   "ENTJ",
 ];
 
-export const MbtiSettings: React.FC = () => {
+interface MbtiSettingsProps {
+  // NEW PROP: Callback to open the MBTI quiz modal in a parent component
+  onOpenMbtiQuiz: (quizFor: "user" | "partner") => void;
+}
+
+export const MbtiSettings: React.FC<MbtiSettingsProps> = ({
+  onOpenMbtiQuiz,
+}) => {
   const state = useSnapshot(chatState);
   const { toast } = useToast();
 
@@ -55,11 +65,9 @@ export const MbtiSettings: React.FC = () => {
       newPreferences.partnerMbtiType = value;
     }
 
-    // Update Valtio state immediately
     chatState.conversations[state.currentConversationId].userPreferences =
       newPreferences;
 
-    // Persist to database
     try {
       await conversationService.updateConversationPreferences(
         state.currentConversationId,
@@ -76,7 +84,6 @@ export const MbtiSettings: React.FC = () => {
         description: "Failed to save MBTI preferences.",
         variant: "destructive",
       });
-      // Revert Valtio state if save fails
       chatState.conversations[state.currentConversationId].userPreferences =
         currentConversation.userPreferences;
     }
@@ -94,7 +101,7 @@ export const MbtiSettings: React.FC = () => {
           onValueChange={(value) => handleMbtiChange("user", value)}
         >
           <SelectTrigger className="w-full bg-white dark:bg-gray-700 border-pink-200 dark:border-gray-600">
-            <SelectValue placeholder="Select MBTI type" />
+            <SelectValue placeholder="Select your MBTI type" />
           </SelectTrigger>
           <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
             {mbtiTypes.map((type) => (
@@ -108,17 +115,24 @@ export const MbtiSettings: React.FC = () => {
             ))}
           </SelectContent>
         </Select>
+        <Button
+          variant="outline"
+          className="w-full mt-2 border-pink-200 hover:bg-pink-50 dark:border-gray-600 dark:hover:bg-gray-700"
+          onClick={() => onOpenMbtiQuiz("user")} // Call parent to open quiz
+        >
+          Discover My MBTI
+        </Button>
       </div>
 
       {/* Partner's MBTI */}
       <div className="space-y-2">
-        <Label htmlFor="partner-mbti">Partner's MBTI Type</Label>
+        <Label htmlFor="partner-mbti">Your Partner's MBTI Type</Label>
         <Select
           value={currentConversation.userPreferences.partnerMbtiType || ""}
           onValueChange={(value) => handleMbtiChange("partner", value)}
         >
           <SelectTrigger className="w-full bg-white dark:bg-gray-700 border-pink-200 dark:border-gray-600">
-            <SelectValue placeholder="Select MBTI type" />
+            <SelectValue placeholder="Select partner's MBTI type" />
           </SelectTrigger>
           <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
             {mbtiTypes.map((type) => (
@@ -132,6 +146,13 @@ export const MbtiSettings: React.FC = () => {
             ))}
           </SelectContent>
         </Select>
+        <Button
+          variant="outline"
+          className="w-full mt-2 border-pink-200 hover:bg-pink-50 dark:border-gray-600 dark:hover:bg-gray-700"
+          onClick={() => onOpenMbtiQuiz("partner")} // Call parent to open quiz
+        >
+          Discover Partner's MBTI
+        </Button>
       </div>
     </div>
   );

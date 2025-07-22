@@ -1,3 +1,4 @@
+// Sidebar.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,16 +19,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { conversationService } from "@/services/conversationService";
-import { Conversation } from "@/store/chatStore"; // Import Conversation from chatStore
+import { Conversation } from "@/store/chatStore";
 import { useToast } from "@/hooks/use-toast";
 import logoT from "@/assets/Asset 4.png";
-import { MbtiSettings } from "@/components/MbtiSettings"; // NEW: Import MbtiSettings
+import { MbtiSettings } from "@/components/MbtiSettings"; // Import MbtiSettings
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   onConversationSelect?: (conversationId: string) => void;
   onNewConversation?: () => Promise<void>;
+  // NEW PROP: Callback to open MBTI quiz modal in parent
+  onOpenMbtiQuiz: (quizFor: "user" | "partner") => void;
 }
 
 const menuItems = [
@@ -43,6 +46,7 @@ export const Sidebar = ({
   onToggle,
   onConversationSelect,
   onNewConversation,
+  onOpenMbtiQuiz, // Destructure new prop
 }: SidebarProps) => {
   const [activeItem, setActiveItem] = useState("conversations");
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -171,8 +175,8 @@ export const Sidebar = ({
                 )}
               </Button>
             </div>
-            {/* NEW: Render MBTI Settings component */}
-            <MbtiSettings />
+            <MbtiSettings onOpenMbtiQuiz={onOpenMbtiQuiz} />{" "}
+            {/* Pass the new prop */}
           </div>
         );
       default:
