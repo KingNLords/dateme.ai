@@ -1,6 +1,7 @@
+// Chat.tsx
 import { useState, useEffect, useRef } from "react";
 import { useSnapshot } from "valtio";
-import { chatState, Message } from "@/store/chatStore";
+import { chatState, Message, Conversation } from "@/store/chatStore"; // Import Conversation type
 import { ChatBubble } from "@/components/ChatBubble";
 import { TypingDots } from "@/components/TypingDots";
 import { ChatHeader } from "@/components/ChatHeader";
@@ -14,23 +15,23 @@ import { OpenAIService } from "@/utils/openai";
 import { conversationService } from "@/services/conversationService";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { OpenAIMessage } from "@/utils/openai";
+import { v4 as uuidv4 } from "uuid";
 
 const Chat = () => {
   const state = useSnapshot(chatState);
-  const [message, setMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [showImageUploader, setShowImageUploader] = useState(false);
-  const [currentConversationId, setCurrentConversationId] = useState<
-    string | null
-  >(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const message = state.currentInput;
   const location = useLocation();
   const navigate = useNavigate();
 
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   const aiService = new OpenAIService(apiKey);
 
+  // Set Supabase session if auth tokens exist in URL
   useEffect(() => {
     const hash = location.hash;
     if (hash.includes("access_token")) {
@@ -47,101 +48,16 @@ const Chat = () => {
     }
   }, [location, navigate]);
 
+  // Scroll to bottom when messages change or typing state changes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [state.messages, state.isTyping]);
+  }, [
+    state.conversations[state.currentConversationId]?.messages,
+    state.isTyping,
+    state.isLoadingMessages,
+  ]);
 
-  const handleSendMessage = async () => {
-    if (!message.trim() && !selectedImage) return;
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: message,
-      sender: "user",
-      timestamp: new Date(),
-      image: selectedImage || undefined,
-      mood: state.userPreferences.mood,
-    };
-
-    chatState.messages.push(newMessage);
-    chatState.isTyping = true;
-
-    if (currentConversationId) {
-      await conversationService.saveMessage(currentConversationId, newMessage);
-    } else {
-      const conversationId = await conversationService.createConversation(
-        message.slice(0, 50) + (message.length > 50 ? "..." : ""),
-        message
-      );
-      setCurrentConversationId(conversationId);
-    }
-
-    setMessage("");
-    setSelectedImage("");
-    setShowImageUploader(false);
-
-    try {
-      const openAIMessages = [
-        {
-          role: "user" as const,
-          content: selectedImage
-            ? [
-                {
-                  type: "text" as const,
-                  text: message || "What do you think about this image?",
-                },
-                {
-                  type: "image_url" as const,
-                  image_url: { url: selectedImage, detail: "auto" as const },
-                },
-              ]
-            : message,
-        },
-      ];
-
-      const response = await aiService.sendMessage(
-        openAIMessages,
-        state.userPreferences.mood
-      );
-
-      chatState.isTyping = false;
-
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: response,
-        sender: "assistant",
-        timestamp: new Date(),
-        mood: state.userPreferences.mood,
-      };
-
-      chatState.messages.push(aiMessage);
-
-      if (currentConversationId) {
-        await conversationService.saveMessage(currentConversationId, aiMessage);
-        await conversationService.updateConversation(
-          currentConversationId,
-          chatState.messages[0]?.text.slice(0, 50) + "..." ||
-            "New conversation",
-          response.slice(0, 100) + (response.length > 100 ? "..." : "")
-        );
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      chatState.isTyping = false;
-    }
-  };
-
-  const handlePromptSelect = (prompt: string) => {
-    setMessage(prompt);
-    textareaRef.current?.focus();
-  };
-
-  const handleConversationSelect = async (conversationId: string) => {
-    const messages = await conversationService.getMessages(conversationId);
-    chatState.messages = messages;
-    setCurrentConversationId(conversationId);
-  };
-
+  // Adjust text area height
   const adjustTextareaHeight = () => {
     if (!textareaRef.current) return;
     textareaRef.current.style.height = "auto";
@@ -153,26 +69,199 @@ const Chat = () => {
     adjustTextareaHeight();
   }, [message]);
 
+  // Handle sending a message
+  const handleSendMessage = async () => {
+    const currentConversationId = chatState.currentConversationId;
+    const currentConversation = chatState.conversations[currentConversationId];
+
+    if (!message.trim() && !selectedImage) return;
+    if (!currentConversation) return;
+
+    const mood = currentConversation.userPreferences.mood;
+    const userPreferences = currentConversation.userPreferences; // Get user preferences
+
+    const userMessage: Message = {
+      id: uuidv4(),
+      text: message,
+      sender: "user",
+      timestamp: new Date(),
+      image: selectedImage || undefined,
+      mood,
+    };
+
+    chatState.conversations[currentConversationId].messages.push(userMessage);
+    chatState.isTyping = true;
+    setMessage("");
+    setSelectedImage("");
+    setShowImageUploader(false);
+
+    const openAIMessages: OpenAIMessage[] = [
+      {
+        role: "user",
+        content: selectedImage
+          ? [
+              {
+                type: "text",
+                text: message || "What do you think about this image?",
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: selectedImage,
+                  detail: "auto",
+                },
+              },
+            ]
+          : message,
+      },
+    ];
+
+    try {
+      // Pass userPreferences to sendMessage
+      const aiResponseText = await aiService.sendMessage(
+        openAIMessages,
+        mood,
+        userPreferences
+      );
+
+      const assistantMessage: Message = {
+        id: uuidv4(),
+        text: aiResponseText,
+        sender: "assistant",
+        timestamp: new Date(),
+        mood,
+      };
+
+      chatState.conversations[currentConversationId].messages.push(
+        assistantMessage
+      );
+      chatState.isTyping = false;
+
+      await conversationService.saveMessage(currentConversationId, userMessage);
+      await conversationService.saveMessage(
+        currentConversationId,
+        assistantMessage
+      );
+      await conversationService.updateConversation(
+        currentConversationId,
+        userMessage.text.slice(0, 50) + "...",
+        assistantMessage.text.slice(0, 100) + "..."
+      );
+    } catch (err: any) {
+      console.error(
+        "Failed to send message:",
+        err.message || JSON.stringify(err)
+      );
+      chatState.isTyping = false;
+    }
+  };
+
+  const setMessage = (text: string) => {
+    chatState.currentInput = text;
+  };
+
+  const handlePromptSelect = (prompt: string) => {
+    setMessage(prompt);
+    textareaRef.current?.focus();
+  };
+
+  const handleConversationSelect = async (conversationId: string) => {
+    if (!chatState.conversations[conversationId]) {
+      console.error(
+        `Conversation with ID ${conversationId} not found in state.`
+      );
+      return;
+    }
+
+    chatState.isLoadingMessages = true;
+    try {
+      const messages = await conversationService.getMessages(conversationId);
+      chatState.conversations[conversationId].messages = messages;
+      chatState.currentConversationId = conversationId;
+    } catch (error: any) {
+      console.error(
+        "Failed to load conversation messages:",
+        error.message || JSON.stringify(error)
+      );
+    } finally {
+      chatState.isLoadingMessages = false;
+    }
+  };
+
+  const handleNewConversation = async () => {
+    const newConversationId = uuidv4();
+    const now = new Date();
+
+    const initialAssistantMessage: Message = {
+      id: uuidv4(),
+      text: "Hi there! I'm your AI dating assistant. How can I help you strengthen your relationship today?",
+      sender: "assistant",
+      timestamp: now,
+      mood: "Supportive",
+    };
+
+    const newConversation: Conversation = {
+      id: newConversationId,
+      messages: [initialAssistantMessage],
+      userPreferences: {
+        name: "You",
+        partnerName: "Your Partner",
+        tone: "romantic",
+        mood: "Romantic",
+        loveLanguage: "Words of Affirmation",
+        mbtiType: null, // Initialize new fields
+        partnerMbtiType: null, // Initialize new fields
+      },
+      title: "New Chat",
+      preview: "Start a new conversation!",
+      updated_at: now.toISOString(),
+      created_at: now.toISOString(),
+    };
+
+    try {
+      chatState.conversations[newConversationId] = newConversation;
+      chatState.currentConversationId = newConversationId;
+      chatState.currentInput = "";
+      setSelectedImage(""); // Ensure selectedImage is reset
+      setShowImageUploader(false); // Ensure showImageUploader is reset
+      chatState.isTyping = false;
+
+      await conversationService.saveConversation(newConversation);
+      await conversationService.saveMessage(
+        newConversationId,
+        initialAssistantMessage
+      );
+    } catch (error: any) {
+      console.error(
+        "Failed to create new conversation:",
+        error.message || JSON.stringify(error)
+      );
+      delete chatState.conversations[newConversationId];
+    }
+  };
+
+  const currentConversation = state.conversations[state.currentConversationId];
+
+  if (!currentConversation) {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center">
+        <div className="mt-2 ">
+          <TypingDots />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    // <div className="flex h-screen bg-gradient-chat dark:bg-gray-900">
     <div className="flex flex-col h-screen bg-gradient-chat dark:bg-gray-900">
-      {/* <div className="flex-1 flex flex-col dark:bg-gray-900"> */}
-      <div className="flex flex-col flex-1 overflow-hidden dark:bg-gray-900">
-        {/* <Sidebar
-          isOpen={state.sidebarOpen}
-          onToggle={() => (chatState.sidebarOpen = !chatState.sidebarOpen)}
-          onConversationSelect={handleConversationSelect}
-        />
+      <div className="flex flex-col flex-1 overflow-hidden">
         <ChatHeader
-          currentMood={state.userPreferences.mood}
-          onMoodChange={(mood) => (chatState.userPreferences.mood = mood)}
-          onSidebarToggle={() =>
-            (chatState.sidebarOpen = !chatState.sidebarOpen)
-          }
-        /> */}
-        <ChatHeader
-          currentMood={state.userPreferences.mood}
-          onMoodChange={(mood) => (chatState.userPreferences.mood = mood)}
+          currentMood={currentConversation.userPreferences.mood}
+          onMoodChange={(mood) => {
+            chatState.conversations[
+              chatState.currentConversationId
+            ].userPreferences.mood = mood;
+          }}
           onSidebarToggle={() =>
             (chatState.sidebarOpen = !chatState.sidebarOpen)
           }
@@ -182,20 +271,27 @@ const Chat = () => {
               isOpen={state.sidebarOpen}
               onToggle={() => (chatState.sidebarOpen = !chatState.sidebarOpen)}
               onConversationSelect={handleConversationSelect}
+              onNewConversation={handleNewConversation}
             />
           )}
         </ChatHeader>
 
-        {/* <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 pb-[140px] flex flex-col items-center"> */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 flex flex-col items-center max-h-full">
-          {state.messages.map((msg) => (
-            <ChatBubble key={msg.id} message={msg} />
-          ))}
-          {state.isTyping && <TypingDots />}
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 flex flex-col items-center max-h-full  dark:bg-gray-900">
+          {state.isLoadingMessages ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+              <TypingDots />
+              <p className="mt-2">Loading conversation...</p>
+            </div>
+          ) : (
+            currentConversation.messages.map((msg) => (
+              <ChatBubble key={msg.id} message={msg} />
+            ))
+          )}
+          {state.isTyping && !state.isLoadingMessages && <TypingDots />}
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="w-full px-4 pb-4 z-40">
+        <div className="w-full px-4 pb-4 z-40  dark:bg-gray-900">
           <div className="max-w-4xl mx-auto mb-2">
             <QuickPrompts onPromptSelect={handlePromptSelect} />
           </div>
@@ -237,7 +333,7 @@ const Chat = () => {
               </div>
               <Button
                 onClick={handleSendMessage}
-                disabled={!message.trim()}
+                disabled={!message.trim() && !selectedImage}
                 className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"
                 size="icon"
               >

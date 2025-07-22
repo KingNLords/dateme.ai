@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ const Signup = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // If user is already logged in (e.g., from a previous session or Google OAuth), navigate to chat
     if (user) {
       navigate("/chat");
     }
@@ -55,6 +57,8 @@ const Signup = () => {
           data: {
             full_name: name,
           },
+          // FIX: Changed 'redirectTo' to 'emailRedirectTo' for email/password signup
+          emailRedirectTo: `${window.location.origin}/chat`,
         },
       });
 
@@ -69,7 +73,8 @@ const Signup = () => {
           title: "Account created!",
           description: "Please check your email to verify your account.",
         });
-        navigate("/chat");
+        // Do NOT navigate immediately. User needs to verify email first.
+        // The emailRedirectTo in options will handle navigation after verification.
       }
     } catch (error) {
       toast({
@@ -89,6 +94,7 @@ const Signup = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
+          // For OAuth, 'redirectTo' is correct
           redirectTo: `${window.location.origin}/chat`,
         },
       });
@@ -107,7 +113,7 @@ const Signup = () => {
         variant: "destructive",
       });
     } finally {
-      setIsGoogleLoading(false);
+      setIsGoogleLoading(false); 
     }
   };
 
@@ -116,7 +122,6 @@ const Signup = () => {
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8 ">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4">
-            {/* <Heart className="w-8 h-8 text-white" /> */}
             <img src={logoE} alt="logo" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white">

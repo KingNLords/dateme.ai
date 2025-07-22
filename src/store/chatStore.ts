@@ -1,4 +1,5 @@
 import { proxy } from "valtio";
+import { v4 as uuidv4 } from "uuid";
 
 export interface Message {
   id: string;
@@ -15,7 +16,7 @@ export type ChatMood =
   | "Serious"
   | "Supportive"
   | "Flirty"
-  | "Trust-Builder";
+  | "TrustBuilder";
 
 export interface UserPreferences {
   name: string;
@@ -23,38 +24,66 @@ export interface UserPreferences {
   tone: string;
   mood: ChatMood;
   loveLanguage: string;
+  // NEW: MBTI types
+  mbtiType: string | null; // User's MBTI type (e.g., "INFJ", "ESTP")
+  partnerMbtiType: string | null; // Partner's MBTI type
+}
+
+export interface Conversation {
+  id: string;
+  messages: Message[];
+  userPreferences: UserPreferences;
+  title: string;
+  preview: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ChatState {
-  userPreferences: UserPreferences;
-  messages: Message[];
+  conversations: Record<string, Conversation>;
+  currentConversationId: string;
   currentInput: string;
   uploadingImage: boolean;
   isTyping: boolean;
   sidebarOpen: boolean;
-  currentConversation: string;
+  isLoadingMessages: boolean;
 }
 
+const initialConversationId = uuidv4();
+
 export const chatState = proxy<ChatState>({
-  userPreferences: {
-    name: "You",
-    partnerName: "Your Partner",
-    tone: "romantic",
-    mood: "Romantic",
-    loveLanguage: "Words of Affirmation",
-  },
-  messages: [
-    {
-      id: "1",
-      text: "Hi, I'm Amo, your dating assistant. How are you feeling today?",
-      sender: "assistant",
-      timestamp: new Date(),
-      mood: "Supportive",
+  conversations: {
+    [initialConversationId]: {
+      id: initialConversationId,
+      userPreferences: {
+        name: "You",
+        partnerName: "Your Partner",
+        tone: "romantic",
+        mood: "Romantic",
+        loveLanguage: "Words of Affirmation",
+        // NEW: Initialize MBTI types as null
+        mbtiType: null,
+        partnerMbtiType: null,
+      },
+      messages: [
+        {
+          id: uuidv4(),
+          text: "Hi, I'm Amo, your dating assistant. How are you feeling today?",
+          sender: "assistant",
+          timestamp: new Date(),
+          mood: "Supportive",
+        },
+      ],
+      title: "First Chat",
+      preview: "Your first conversation with Amo!",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     },
-  ],
+  },
+  currentConversationId: initialConversationId,
   currentInput: "",
   uploadingImage: false,
   isTyping: false,
   sidebarOpen: false,
-  currentConversation: "main",
+  isLoadingMessages: false,
 });
