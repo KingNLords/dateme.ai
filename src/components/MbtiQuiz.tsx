@@ -251,7 +251,7 @@ export const MbtiQuiz: React.FC<MbtiQuizProps> = ({
       description: `The inferred MBTI type for ${
         quizFor === "user" ? "you" : "your partner"
       } is: ${finalMbti}.`,
-      variant: "success",
+      variant: "default",
     });
   };
 

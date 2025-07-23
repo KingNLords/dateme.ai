@@ -1,4 +1,3 @@
-// components/MbtiSettings.tsx
 import React, { useState } from "react";
 import { useSnapshot } from "valtio";
 import { chatState } from "@/store/chatStore";
@@ -13,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { conversationService } from "@/services/conversationService";
 import { useToast } from "@/hooks/use-toast";
-// MbtiQuiz is no longer imported here, as it will be rendered by the parent (Chat.tsx)
 
 // Standard 16 MBTI types
 const mbtiTypes = [
@@ -90,7 +88,7 @@ export const MbtiSettings: React.FC<MbtiSettingsProps> = ({
   };
 
   return (
-    <div className="space-y-4 p-4 text-gray-700 dark:text-gray-300">
+    <div className="space-y-2 p-4 text-gray-700 dark:text-gray-300">
       <h3 className="font-semibold text-base">MBTI Personalization</h3>
 
       {/* User's MBTI */}
