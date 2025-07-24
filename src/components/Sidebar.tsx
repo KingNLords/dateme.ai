@@ -215,8 +215,7 @@ export const Sidebar = ({
         <div
           className={cn(
             "p-4 flex items-center",
-            isCollapsed ? "justify-center" : "justify-between",
-            "border-b border-gray-200 dark:border-gray-700"
+            isCollapsed ? "justify-center" : "justify-between"
           )}
         >
           <div
