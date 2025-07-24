@@ -191,7 +191,7 @@ export const MbtiQuiz: React.FC<MbtiQuizProps> = ({
       // Set a timer to call onCancel after 10 seconds
       timer = setTimeout(() => {
         onCancel();
-      }, 10000); // Changed to 10000 milliseconds = 10 seconds
+      }, 45000); // Changed to 10000 milliseconds = 10 seconds
     }
 
     // Cleanup function: Clear the timer if the component unmounts or quizFinished changes
