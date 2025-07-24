@@ -184,6 +184,24 @@ export const MbtiQuiz: React.FC<MbtiQuizProps> = ({
 
   const currentStatement = quizStatements[currentQuestionIndex];
 
+  // Effect to handle the automatic closing of the modal after a timeout
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (quizFinished) {
+      // Set a timer to call onCancel after 10 seconds
+      timer = setTimeout(() => {
+        onCancel();
+      }, 10000); // Changed to 10000 milliseconds = 10 seconds
+    }
+
+    // Cleanup function: Clear the timer if the component unmounts or quizFinished changes
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [quizFinished, onCancel]); // Re-run effect when quizFinished or onCancel changes
+
   // Handle user's Likert scale answer
   const handleAnswer = (score: number) => {
     const pole = currentStatement.dichotomyPole;
@@ -337,7 +355,7 @@ export const MbtiQuiz: React.FC<MbtiQuizProps> = ({
             <div className="flex flex-col space-y-3 mt-6">
               <Button
                 className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"
-                onClick={onCancel} // Close quiz after seeing results
+                onClick={onCancel} // Close quiz immediately if user clicks "Done"
               >
                 Done
               </Button>

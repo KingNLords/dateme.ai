@@ -3,8 +3,8 @@ import { useSnapshot } from "valtio";
 import { chatState, Message, Conversation } from "@/store/chatStore";
 import { ChatBubble } from "@/components/ChatBubble";
 import { TypingDots } from "@/components/TypingDots";
-import { ChatHeader } from "@/components/ChatHeader"; // Updated in this response
-import { Sidebar } from "@/components/Sidebar"; // Already updated in previous responses
+import { ChatHeader } from "@/components/ChatHeader";
+import { Sidebar } from "@/components/Sidebar";
 import { QuickPrompts } from "@/components/QuickPrompts";
 import { ImageUploader } from "@/components/ImageUploader";
 import { Button } from "@/components/ui/button";
@@ -274,15 +274,16 @@ const Chat = () => {
         currentConversationId,
         newPreferences
       );
+      // Removed: setIsMbtiQuizModalOpen(false);
+      // The MbtiQuiz component will now handle its own closure via timeout or "Done" button.
     } catch (error) {
       console.error("Failed to save MBTI preferences after quiz:", error);
-    } finally {
-      setIsMbtiQuizModalOpen(false);
     }
+    // Removed: finally { setIsMbtiQuizModalOpen(false); }
   };
 
   const handleMbtiQuizCancel = () => {
-    setIsMbtiQuizModalOpen(false);
+    setIsMbtiQuizModalOpen(false); // This function is now solely responsible for closing the modal
   };
 
   const handleSidebarCollapseToggle = () => {
@@ -294,16 +295,14 @@ const Chat = () => {
   if (!currentConversation) {
     return (
       <div className="flex flex-col h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">
-        <div>
-          <TypingDots />
-        </div>
+        <TypingDots />
+        <p className="mt-2">Loading...</p>
       </div>
     );
   }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Sidebar is a direct sibling of the main content area */}
       <Sidebar
         isOpen={state.sidebarOpen}
         isCollapsed={isSidebarCollapsed}
@@ -314,11 +313,10 @@ const Chat = () => {
         onOpenMbtiQuiz={handleOpenMbtiQuiz}
       />
 
-      {/* Main Chat Content Area */}
       <div
         className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ease-in-out
           ${isSidebarCollapsed ? "md:ml-20" : "md:ml-72"}
-          ml-0`} /* Dynamic margin for desktop, 0 for mobile */
+          ml-0`}
       >
         <ChatHeader
           currentMood={currentConversation.userPreferences.mood}
